@@ -1,0 +1,25 @@
+---
+description: Use shadcn/ui for all UI elements (init + add commands)
+alwaysApply: true
+---
+
+# UI components: shadcn/ui
+
+- **Default**: Use shadcn/ui components for all UI elements (prefer installing an existing shadcn component over building a bespoke one).
+- **Initialization**: If shadcn/ui is not initialized in this repo, run:
+
+```bash
+npx shadcn@latest init
+```
+
+- **Adding components**: If a needed component is not installed, add it via:
+
+```bash
+npx shadcn@latest add <component>
+```
+
+Example:
+
+```bash
+npx shadcn@latest add button
+```
