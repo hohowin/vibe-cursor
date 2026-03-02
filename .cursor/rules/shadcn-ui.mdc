@@ -1,8 +1,6 @@
 ---
-description: Use shadcn/ui for all UI elements (init + add commands)
 alwaysApply: true
 ---
-
 # UI components: shadcn/ui
 
 - **Default**: Use shadcn/ui components for all UI elements (prefer installing an existing shadcn component over building a bespoke one).
