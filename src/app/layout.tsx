@@ -27,8 +27,8 @@ export default function RootLayout({
             <div className="font-semibold">Vibe App</div>
             <div className="flex items-center gap-3">
               <SignedOut>
-                <SignInButton />
-                <SignUpButton />
+                <SignInButton mode="modal" />
+                <SignUpButton mode="modal" />
               </SignedOut>
               <SignedIn>
                 <UserButton />
