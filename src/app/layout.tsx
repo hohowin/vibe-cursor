@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { Poppins } from "next/font/google";
+import { Button } from "@/components/ui/button";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -32,8 +33,12 @@ export default function RootLayout({
             <div className="font-semibold">Vibe App</div>
             <div className="flex items-center gap-3">
               <SignedOut>
-                <SignInButton mode="modal" />
-                <SignUpButton mode="modal" />
+                <SignInButton mode="modal">
+                  <Button variant="ghost">Sign in</Button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <Button>Sign up</Button>
+                </SignUpButton>
               </SignedOut>
               <SignedIn>
                 <UserButton />
