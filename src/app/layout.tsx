@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { dark } from "@clerk/themes";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -20,7 +21,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      appearance={{
+        baseTheme: dark,
+      }}
+    >
       <html lang="en" className="dark">
         <body className={`${poppins.variable} antialiased`}>
           <header className="flex items-center justify-between px-4 py-3 border-b">
