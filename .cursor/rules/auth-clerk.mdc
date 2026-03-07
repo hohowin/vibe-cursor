@@ -1,0 +1,17 @@
+---
+description: All authentication and authorization is handled by Clerk, and users must only access their own data
+alwaysApply: true
+---
+
+# Authentication & authorization with Clerk
+
+- **Clerk as the single auth source**: All authentication and authorization must go through Clerk (e.g., using server-side helpers like `currentUser`, `auth`, or middleware provided by Clerk), never via custom tokens, raw cookies, or ad-hoc headers.
+- **Never trust client input for identity**: Do **not** accept `userId`, `email`, or any identity fields from request bodies, query params, or headers as the source of truth. Always derive identity from the Clerk session on the server.
+- **Per-user data isolation**: Any query that reads, updates, or deletes user-owned data must:
+  - Derive the current user identifier from Clerk.
+  - Scope the database query by that identifier (e.g., `where(eq(table.userId, clerkUserId))`).
+  - Avoid patterns that fetch unscoped data and then filter in application code.
+- **Multi-tenant and shared resources**: If a resource can be shared (e.g., teams, workspaces), always enforce membership/ownership checks based on Clerk identities or mapped relationship tables before returning or mutating data.
+- **No cross-user access**: It must never be possible for a user to access, update, or delete records that belong to another user (or tenant) by guessing IDs or manipulating request parameters. All sensitive routes require an authenticated Clerk session.
+- **Server-side enforcement**: Authorization checks must run on the server (API routes, server components, server actions, or backend services). Do not rely solely on client-side checks or UI hiding to protect data.
+- **Background jobs & webhooks**: When processing background jobs or webhooks that act on user data, use trusted identifiers (e.g., Clerk user IDs stored in your database) and apply the same ownership checks as interactive requests.
