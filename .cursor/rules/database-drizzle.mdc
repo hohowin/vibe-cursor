@@ -1,0 +1,12 @@
+---
+description: All database interactions must use the Drizzle schema and query builders
+alwaysApply: true
+---
+
+# Database interactions: Drizzle only
+
+- **Use Drizzle schema**: All application-level database interactions must use the existing Drizzle schema definitions and query builder APIs (e.g., `db.select()`, `db.insert()`, `db.update()`, `db.delete()`, `eq`, `and`, etc.).
+- **No raw SQL by default**: Do **not** write raw SQL strings or call the underlying database driver directly in feature code. If something cannot be expressed with Drizzle, prefer extending the Drizzle schema/utilities first.
+- **Centralize access**: Prefer importing tables and helpers from the shared Drizzle schema/modules rather than redefining table names, columns, or ad‑hoc types in feature code.
+- **Migrations and low-level operations**: Only use raw SQL or direct driver access in clearly isolated migration/bootstrapping utilities where Drizzle cannot reasonably represent the operation.
+- **New features**: When adding new features, design data access in terms of Drizzle models and queries from the start instead of retrofitting raw queries later.
