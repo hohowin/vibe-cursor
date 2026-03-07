@@ -15,3 +15,71 @@ alwaysApply: true
 - **No cross-user access**: It must never be possible for a user to access, update, or delete records that belong to another user (or tenant) by guessing IDs or manipulating request parameters. All sensitive routes require an authenticated Clerk session.
 - **Server-side enforcement**: Authorization checks must run on the server (API routes, server components, server actions, or backend services). Do not rely solely on client-side checks or UI hiding to protect data.
 - **Background jobs & webhooks**: When processing background jobs or webhooks that act on user data, use trusted identifiers (e.g., Clerk user IDs stored in your database) and apply the same ownership checks as interactive requests.
+
+## Examples
+
+- **Per-user notes API (Next.js route)**: Scope all queries by the Clerk user ID and never accept a `userId` from the client.
+
+```ts
+import { auth } from '@clerk/nextjs/server';
+import { db } from '@/db';
+import { notes } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+
+export async function GET() {
+  const { userId } = auth();
+  if (!userId) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const userNotes = await db
+    .select()
+    .from(notes)
+    .where(eq(notes.userId, userId));
+
+  return Response.json(userNotes);
+}
+
+export async function POST(req: Request) {
+  const { userId } = auth();
+  if (!userId) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const { title, content } = await req.json(); // no userId from client
+
+  await db.insert(notes).values({
+    title,
+    content,
+    userId, // always from Clerk
+  });
+
+  return new Response(null, { status: 201 });
+}
+```
+
+- **Update by ID with ownership check**: Never update by ID alone; always combine with the Clerk user ID.
+
+```ts
+export async function PUT(req: Request, { params }: { params: { noteId: string } }) {
+  const { userId } = auth();
+  if (!userId) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  const { title, content } = await req.json();
+
+  const result = await db
+    .update(notes)
+    .set({ title, content })
+    .where(and(eq(notes.id, params.noteId), eq(notes.userId, userId)))
+    .returning();
+
+  if (result.length === 0) {
+    // Either the note doesn't exist or it doesn't belong to this user
+    return new Response('Not found', { status: 404 });
+  }
+
+  return Response.json(result[0]);
+}
+```
