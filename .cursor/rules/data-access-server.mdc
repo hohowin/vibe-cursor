@@ -1,0 +1,96 @@
+---
+alwaysApply: true
+---
+# Data access via server components and server actions
+
+- **Reads only in server components**: All data retrieval from our database or external data layer must happen in server-only contexts:
+  - Next.js server components (e.g. files under `app/` that are not marked `"use client"`)
+  - Route handlers / API routes
+  - Server utilities that are only ever called from the above
+
+- **Writes only in server actions**: Any operation that **inserts**, **updates**, or **deletes** data in our database must be implemented as a **server action**, and only invoked from the client via that server action. Do **not** write directly from client components, hooks, or effects.
+
+## Examples
+
+- **Valid: read in a server component**
+
+```ts
+// app/dashboard/page.tsx (server component)
+import { db } from "@/db";
+import { items } from "@/db/schema";
+
+export default async function DashboardPage() {
+  const data = await db.select().from(items);
+
+  return (
+    <div>
+      <h1>Dashboard</h1>
+      {/* pass data down to client components as props if needed */}
+    </div>
+  );
+}
+```
+
+- **Valid: write via a server action**
+
+```ts
+// app/items/actions.ts
+"use server";
+
+import { db } from "@/db";
+import { items } from "@/db/schema";
+
+export async function createItem(input: { name: string }) {
+  await db.insert(items).values({ name: input.name });
+}
+```
+
+```ts
+// app/items/page.tsx (can be a client component using the action)
+"use client";
+
+import { useTransition } from "react";
+import { createItem } from "./actions";
+
+export function NewItemForm() {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <form
+      action={async (formData: FormData) => {
+        const name = formData.get("name") as string;
+        startTransition(() => createItem({ name }));
+      }}
+    >
+      <input name="name" />
+      <button type="submit" disabled={isPending}>
+        Create
+      </button>
+    </form>
+  );
+}
+```
+
+- **Invalid: writing directly from a client component (not allowed)**
+
+```ts
+// ❌ Do NOT do this
+"use client";
+
+import { db } from "@/db"; // or any direct data layer import
+
+export function BadComponent() {
+  async function handleClick() {
+    // ❌ Direct write from client
+    await db.insert(/* ... */);
+  }
+
+  return <button onClick={handleClick}>Save</button>;
+}
+```
+
+Always move:
+
+- **Reads** into server components / route handlers, and
+- **Writes** into server actions that the client calls, never directly into the data layer from the client.
+
